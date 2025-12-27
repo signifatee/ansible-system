@@ -12,11 +12,6 @@
     mode: '0755'
   when: kubectl_check.rc != 0
 
-- name: kubectl install
-  shell: wget https://dl.k8s.io/release/`curl -LS https://dl.k8s.io/release/stable.txt`/bin/linux/amd64/kubectl -P /tmp && chmod +x /tmp/kubectl && sudo mv /tmp/kubectl /usr/local/bin/kubectl 
-  become: no
-  when: kubectl_check.rc != 0
-
 - name: Check if Minikube is installed
   command: which minikube
   register: minikube_check
