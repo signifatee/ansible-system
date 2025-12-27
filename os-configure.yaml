@@ -153,6 +153,10 @@
       shell: "sed -i 's/plugins=(git)/plugins=(git zsh-autosuggestions zsh-syntax-highlighting)/' {{ home_dir }}/.zshrc"
       become: no
 
+    - name: git configure
+      shell: git config --global user.name $(hostname) & git config --global user.email "$(hostname)@server.com" 
+      become: no
+
     - name: Print completion message
       debug:
         msg: |
