@@ -1,0 +1,39 @@
+---
+- name: Check if kubectl is installed
+  command: which kubectl
+  register: kubectl_check
+  changed_when: false
+  failed_when: false
+
+- name: Download latest stable kubectl
+  get_url:
+    url: "https://dl.k8s.io/release/{{ (lookup('url', 'https://dl.k8s.io/release/stable.txt', split_lines=False) | trim) }}/bin/linux/amd64/kubectl"
+    dest: /usr/local/bin/kubectl
+    mode: '0755'
+  when: kubectl_check.rc != 0
+
+- name: kubectl install
+  shell: wget https://dl.k8s.io/release/`curl -LS https://dl.k8s.io/release/stable.txt`/bin/linux/amd64/kubectl -P /tmp && chmod +x /tmp/kubectl && sudo mv /tmp/kubectl /usr/local/bin/kubectl 
+  become: no
+  when: kubectl_check.rc != 0
+
+- name: Check if Minikube is installed
+  command: which minikube
+  register: minikube_check
+  changed_when: false
+  failed_when: false
+
+- name: Download Minikube
+  get_url:
+    url: "https://storage.googleapis.com/minikube/releases/latest/minikube-linux-amd64"
+    dest: /usr/local/bin/minikube
+    mode: '0755'
+  when: minikube_check.rc != 0
+
+- name: Start Minikube
+  command: minikube start --driver={{ minikube_driver }} --listen-address=0.0.0.0 --apiserver-ips={{ minikube_ip_allow }} --force
+  become: no
+
+- name: make kubeconf
+  shell: kubectl config view --minify --flatten > ~/minikube-kubeconfig.yaml
+  become: no

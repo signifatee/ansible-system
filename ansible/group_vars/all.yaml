@@ -1,0 +1,3 @@
+home_dir: /root
+minikube_driver: docker
+minikube_ip_allow: 192.168.122.75

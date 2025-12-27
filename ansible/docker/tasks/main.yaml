@@ -1,0 +1,60 @@
+# Docker installation
+---
+- name: Update APT cache
+  apt:
+    update_cache: yes
+    cache_valid_time: 3600
+    force_apt_get: yes
+
+- name: Add Docker GPG key
+  apt_key:
+    url: "{{ docker_repo_key_url }}"
+    state: present
+
+- name: Add Docker repository
+  apt_repository:
+    repo: "{{ docker_apt_repository }}"
+    state: present
+    filename: docker-ce
+
+- name: Install Docker CE
+  apt:
+    name: docker-ce
+    state: present
+
+- name: Ensure Docker service is started and enabled
+  systemd:
+    name: docker
+    enabled: yes
+    state: started
+
+- name: Get OS type (uname -s)
+  command: uname -s
+  register: os_type
+  changed_when: false
+
+- name: Get architecture (uname -m)
+  command: uname -m
+  register: arch_type
+  changed_when: false
+
+- name: Download Docker Compose binary
+  get_url:
+    url: "https://github.com/docker/compose/releases/download/{{ docker_compose_version }}/docker-compose-{{ os_type.stdout }}-{{ arch_type.stdout }}"
+    dest: "{{ docker_compose_path }}"
+    mode: '0755'
+- name: Verify Docker Compose installation
+  command: "{{ docker_compose_path }} --version"
+  register: docker_compose_check
+  changed_when: false
+
+- name: Show Docker Compose version
+  debug:
+    msg: "Docker Compose installed: {{ docker_compose_check.stdout }}"
+
+# Post-installation: Add user to docker group
+- name: Add current user to docker group
+  user:
+    name: "{{ ansible_user_id | default(ansible_user) | default('ubuntu') }}"
+    groups: docker
+    append: yes
